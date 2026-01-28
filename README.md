@@ -61,7 +61,7 @@ chmod +x install-macos.sh
 ### One-Command Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-linux.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-linux.sh | bash
 ```
 
 ### Manual Installation
@@ -73,11 +73,11 @@ curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/s
 # Make it executable
 chmod +x install-linux.sh
 
-# Run it with sudo
-sudo ./install-linux.sh
+# Run it
+./install-linux.sh
 ```
 
-**Important:** This script must be run with `sudo` but installs everything for your user account, not for root.
+**Note:** You may need to enter your sudo password when installing system dependencies.
 
 ---
 
@@ -103,7 +103,7 @@ Before running the script, you need WSL2 installed:
 Inside your WSL2 Ubuntu terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-windows.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-windows.sh | bash
 ```
 
 ### Manual Installation
@@ -115,36 +115,36 @@ curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/s
 # Make it executable
 chmod +x install-windows.sh
 
-# Run it with sudo
-sudo ./install-windows.sh
+# Run it
+./install-windows.sh
 ```
 
-**Important:** This script must be run with `sudo` but installs everything for your user account, not for root.
+**Note:** You may need to enter your sudo password when installing system dependencies.
 
 ---
 
 ## 📝 Post-Installation Steps
 
-After the installation completes successfully:
+The script automatically reloads your shell configuration, so all commands should be available immediately!
 
-1. **Restart your terminal** or reload your shell configuration:
+1. **Verify Claude Code installation**:
+   ```bash
+   claude doctor
+   ```
+
+2. **Start using Claude Code**:
+   ```bash
+   cd your-project-directory
+   claude
+   ```
+
+**Note:** If for any reason commands are not found, restart your terminal or manually reload your shell:
    ```bash
    # For bash
    source ~/.bashrc
 
    # For zsh
    source ~/.zshrc
-   ```
-
-2. **Verify Claude Code installation**:
-   ```bash
-   claude doctor
-   ```
-
-3. **Start using Claude Code**:
-   ```bash
-   cd your-project-directory
-   claude
    ```
 
 ## 🔑 Claude Code Subscription

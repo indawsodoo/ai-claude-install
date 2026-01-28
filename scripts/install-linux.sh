@@ -19,12 +19,6 @@
 set -e  # Exit on error
 
 # ==============================================================================
-# SUDO USER DETECTION - Get the real user when running with sudo
-# ==============================================================================
-REAL_USER="${SUDO_USER:-$USER}"
-REAL_HOME=$(eval echo ~$REAL_USER)
-
-# ==============================================================================
 # COLOR CODES - Making terminal output fabulous! 🎨
 # ==============================================================================
 RED='\033[0;31m'
@@ -135,7 +129,7 @@ install_system_dependencies() {
 # ==============================================================================
 
 check_nvm() {
-    if [ -d "$REAL_HOME/.nvm" ] && [ -s "$REAL_HOME/.nvm/nvm.sh" ]; then
+    if [ -d "$HOME/.nvm" ] && [ -s "$HOME/.nvm/nvm.sh" ]; then
         return 0
     else
         return 1
@@ -147,7 +141,7 @@ install_nvm() {
 
     if check_nvm; then
         # Source NVM to get version
-        export NVM_DIR="$REAL_HOME/.nvm"
+        export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         local nvm_version=$(nvm --version 2>/dev/null || echo "unknown")
         print_success "NVM is already installed! (v$nvm_version)"
@@ -156,11 +150,11 @@ install_nvm() {
 
     print_step "NVM not found. Installing Node Version Manager..."
 
-    # Download and install NVM as the real user
-    su - $REAL_USER -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash'
+    # Download and install NVM
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 
     # Load NVM
-    export NVM_DIR="$REAL_HOME/.nvm"
+    export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
     if check_nvm; then
@@ -187,7 +181,7 @@ install_nodejs() {
     print_header "🟢 NODE.JS INSTALLATION"
 
     # Make sure NVM is loaded
-    export NVM_DIR="$REAL_HOME/.nvm"
+    export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
     if check_nodejs; then
@@ -199,10 +193,11 @@ install_nodejs() {
     fi
 
     print_step "Installing Node.js LTS (Long Term Support)..."
-    su - $REAL_USER -c 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm install --lts && nvm use --lts && nvm alias default lts/*'
 
-    # Reload NVM
+    # Load NVM and install Node.js
+    export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install --lts && nvm use --lts && nvm alias default lts/*
 
     if check_nodejs; then
         local node_version=$(node --version)
@@ -242,12 +237,12 @@ install_claude_code() {
     print_warning "This may take a few minutes, please be patient..."
     echo ""
 
-    # Use the official installation script as the real user
-    su - $REAL_USER -c 'curl -fL https://claude.ai/install.sh | bash'
+    # Use the official installation script
+    curl -fL https://claude.ai/install.sh | bash
 
     echo ""
     # Reload shell to pick up claude command
-    export PATH="$REAL_HOME/.local/bin:$PATH"
+    export PATH="$HOME/.local/bin:$PATH"
 
     if check_claude_code; then
         print_success "Claude Code installed successfully! 🎉"
@@ -265,7 +260,7 @@ install_claude_code() {
 # ==============================================================================
 
 check_pyenv() {
-    if [ -d "$REAL_HOME/.pyenv" ] && [ -s "$REAL_HOME/.pyenv/bin/pyenv" ]; then
+    if [ -d "$HOME/.pyenv" ] && [ -s "$HOME/.pyenv/bin/pyenv" ]; then
         return 0
     else
         return 1
@@ -277,7 +272,7 @@ install_pyenv() {
 
     if check_pyenv; then
         # Load pyenv to get version
-        export PYENV_ROOT="$REAL_HOME/.pyenv"
+        export PYENV_ROOT="$HOME/.pyenv"
         export PATH="$PYENV_ROOT/bin:$PATH"
         local pyenv_version=$($PYENV_ROOT/bin/pyenv --version 2>/dev/null | cut -d' ' -f2 || echo "installed")
         print_success "pyenv is already installed! (v$pyenv_version)"
@@ -286,11 +281,11 @@ install_pyenv() {
 
     print_step "Installing pyenv..."
 
-    # Use the official pyenv installer as the real user with proper HOME
-    su - $REAL_USER -c 'export HOME="'"$REAL_HOME"'"; curl https://pyenv.run | bash'
+    # Use the official pyenv installer
+    curl https://pyenv.run | bash
 
     # Load pyenv
-    export PYENV_ROOT="$REAL_HOME/.pyenv"
+    export PYENV_ROOT="$HOME/.pyenv"
     export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init --path)" 2>/dev/null || true
     eval "$(pyenv init -)" 2>/dev/null || true
@@ -350,13 +345,13 @@ install_python() {
     print_info "This might take a few minutes - perfect time for a coffee! ☕"
 
     # Make sure pyenv is loaded
-    export PYENV_ROOT="$REAL_HOME/.pyenv"
+    export PYENV_ROOT="$HOME/.pyenv"
     export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init --path)" 2>/dev/null || true
     eval "$(pyenv init -)" 2>/dev/null || true
 
-    # Install Python 3.13 as the real user
-    su - $REAL_USER -c 'export PYENV_ROOT="$HOME/.pyenv"; export PATH="$PYENV_ROOT/bin:$PATH"; eval "$(pyenv init --path)"; eval "$(pyenv init -)"; pyenv install 3.13.3 -s && pyenv global 3.13.3'
+    # Install Python 3.13
+    pyenv install 3.13.3 -s && pyenv global 3.13.3
 
     if check_python; then
         local python_version=$(python3 --version)
@@ -384,17 +379,16 @@ configure_shell() {
 
     # Determine which shell config file to use (priority: zsh > bash)
     local shell_config=""
-    if [ -f "$REAL_HOME/.zshrc" ]; then
-        shell_config="$REAL_HOME/.zshrc"
+    if [ -f "$HOME/.zshrc" ]; then
+        shell_config="$HOME/.zshrc"
         print_step "Configuring Zsh (~/.zshrc)..."
-    elif [ -f "$REAL_HOME/.bashrc" ]; then
-        shell_config="$REAL_HOME/.bashrc"
+    elif [ -f "$HOME/.bashrc" ]; then
+        shell_config="$HOME/.bashrc"
         print_step "Configuring Bash (~/.bashrc)..."
     else
         # Create .bashrc if neither exists
-        shell_config="$REAL_HOME/.bashrc"
+        shell_config="$HOME/.bashrc"
         touch "$shell_config"
-        chown $REAL_USER:$(id -gn $REAL_USER) "$shell_config"
         print_step "Created ~/.bashrc for configuration..."
     fi
 
@@ -429,7 +423,9 @@ eval "\$(pyenv init -)"
 EOF
 
     print_success "Configuration added to $shell_config"
-    print_info "Run: source $shell_config"
+
+    # Return the shell config file path for sourcing later
+    echo "$shell_config"
 }
 
 # ==============================================================================
@@ -445,7 +441,7 @@ verify_installation() {
     echo ""
 
     # NVM
-    export NVM_DIR="$REAL_HOME/.nvm"
+    export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     if check_nvm; then
         local nvm_version=$(nvm --version 2>/dev/null || echo "installed")
@@ -465,7 +461,7 @@ verify_installation() {
     fi
 
     # Claude Code
-    export PATH="$REAL_HOME/.local/bin:$PATH"
+    export PATH="$HOME/.local/bin:$PATH"
     if check_claude_code; then
         local claude_version=$(claude --version 2>/dev/null || echo "installed")
         print_success "Claude Code: $claude_version"
@@ -475,7 +471,7 @@ verify_installation() {
     fi
 
     # pyenv
-    export PYENV_ROOT="$REAL_HOME/.pyenv"
+    export PYENV_ROOT="$HOME/.pyenv"
     export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init --path)" 2>/dev/null || true
     eval "$(pyenv init -)" 2>/dev/null || true
@@ -506,9 +502,8 @@ verify_installation() {
         print_success "═══════════════════════════════════════════════════════════"
         echo ""
         print_info "Next steps:"
-        print_info "  1. Restart your terminal or run: source ~/.bashrc (or ~/.zshrc)"
-        print_info "  2. Run 'claude doctor' to verify Claude Code setup"
-        print_info "  3. Run 'claude' in your project directory to start coding!"
+        print_info "  1. Run 'claude doctor' to verify Claude Code setup"
+        print_info "  2. Run 'claude' in your project directory to start coding!"
         echo ""
         print_warning "Remember: You need a Claude Pro/Max subscription to use Claude Code"
         print_info "Visit: https://claude.ai to manage your subscription"
@@ -567,10 +562,18 @@ EOF
     install_claude_code
     install_pyenv
     install_python
-    configure_shell
+    SHELL_CONFIG=$(configure_shell)
     verify_installation
 
     print_success "Installation script completed! 🎊"
+
+    # Source the shell configuration to make everything available immediately
+    if [ -f "$SHELL_CONFIG" ]; then
+        print_header "🔄 RELOADING SHELL CONFIGURATION"
+        print_info "Loading environment variables..."
+        source "$SHELL_CONFIG"
+        print_success "Environment reloaded! All commands are now available! 🎉"
+    fi
 }
 
 # Run the main function

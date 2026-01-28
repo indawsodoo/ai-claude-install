@@ -34,7 +34,7 @@ These scripts will install and configure everything you need:
 ### One-Command Installation
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-macos.sh | bash
+curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-macos.sh | bash
 ```
 
 ### Manual Installation
@@ -47,8 +47,10 @@ curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/s
 chmod +x install-macos.sh
 
 # Run it
-sudo ./install-macos.sh
+./install-macos.sh
 ```
+
+**Note:** The script will ask for your password (sudo) only when installing system dependencies via Homebrew.
 
 ---
 
@@ -59,7 +61,7 @@ sudo ./install-macos.sh
 ### One-Command Installation
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-linux.sh | bash
+curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-linux.sh | sudo bash
 ```
 
 ### Manual Installation
@@ -71,9 +73,11 @@ curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/s
 # Make it executable
 chmod +x install-linux.sh
 
-# Run it
+# Run it with sudo
 sudo ./install-linux.sh
 ```
+
+**Important:** This script must be run with `sudo` but installs everything for your user account, not for root.
 
 ---
 
@@ -99,7 +103,7 @@ Before running the script, you need WSL2 installed:
 Inside your WSL2 Ubuntu terminal:
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-windows.sh | bash
+curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-windows.sh | sudo bash
 ```
 
 ### Manual Installation
@@ -111,9 +115,11 @@ curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/s
 # Make it executable
 chmod +x install-windows.sh
 
-# Run it
+# Run it with sudo
 sudo ./install-windows.sh
 ```
+
+**Important:** This script must be run with `sudo` but installs everything for your user account, not for root.
 
 ---
 

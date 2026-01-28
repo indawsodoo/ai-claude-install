@@ -268,10 +268,13 @@ install_claude_code() {
 
     print_step "Installing Claude Code CLI..."
     print_info "Using the official installation script..."
+    print_warning "This may take a few minutes, please be patient..."
+    echo ""
 
-    # Use the official installation script
-    curl -fsSL https://claude.ai/install.sh | bash
+    # Use the official installation script (without -s to show progress)
+    curl -fL https://claude.ai/install.sh | bash
 
+    echo ""
     # Reload shell to pick up claude command
     export PATH="$HOME/.local/bin:$PATH"
 

@@ -265,7 +265,7 @@ install_claude_code() {
 # ==============================================================================
 
 check_pyenv() {
-    if command -v pyenv &> /dev/null; then
+    if [ -d "$REAL_HOME/.pyenv" ] && [ -s "$REAL_HOME/.pyenv/bin/pyenv" ]; then
         return 0
     else
         return 1
@@ -276,15 +276,18 @@ install_pyenv() {
     print_header "🐍 PYENV (PYTHON VERSION MANAGER) INSTALLATION"
 
     if check_pyenv; then
-        local pyenv_version=$(pyenv --version | cut -d' ' -f2)
+        # Load pyenv to get version
+        export PYENV_ROOT="$REAL_HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        local pyenv_version=$($PYENV_ROOT/bin/pyenv --version 2>/dev/null | cut -d' ' -f2 || echo "installed")
         print_success "pyenv is already installed! (v$pyenv_version)"
         return 0
     fi
 
     print_step "Installing pyenv..."
 
-    # Use the official pyenv installer as the real user
-    su - $REAL_USER -c 'curl https://pyenv.run | bash'
+    # Use the official pyenv installer as the real user with proper HOME
+    su - $REAL_USER -c 'export HOME="'"$REAL_HOME"'"; curl https://pyenv.run | bash'
 
     # Load pyenv
     export PYENV_ROOT="$REAL_HOME/.pyenv"

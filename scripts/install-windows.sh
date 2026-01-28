@@ -377,6 +377,63 @@ install_python() {
 }
 
 # ==============================================================================
+# SHELL CONFIGURATION - Auto-configure shell profiles
+# ==============================================================================
+
+configure_shell() {
+    print_header "🔧 SHELL CONFIGURATION"
+
+    # Determine which shell config file to use (priority: zsh > bash)
+    local shell_config=""
+    if [ -f "$REAL_HOME/.zshrc" ]; then
+        shell_config="$REAL_HOME/.zshrc"
+        print_step "Configuring Zsh (~/.zshrc)..."
+    elif [ -f "$REAL_HOME/.bashrc" ]; then
+        shell_config="$REAL_HOME/.bashrc"
+        print_step "Configuring Bash (~/.bashrc)..."
+    else
+        # Create .bashrc if neither exists
+        shell_config="$REAL_HOME/.bashrc"
+        touch "$shell_config"
+        chown $REAL_USER:$(id -gn $REAL_USER) "$shell_config"
+        print_step "Created ~/.bashrc for configuration..."
+    fi
+
+    local config_marker="# Claude Code Environment - Added by ai-claude-install"
+    local needs_update=false
+
+    # Check if configuration already exists
+    if grep -q "$config_marker" "$shell_config"; then
+        print_success "Configuration already exists in $shell_config"
+        return 0
+    fi
+
+    print_step "Adding environment configuration..."
+
+    # Add configuration block
+    cat >> "$shell_config" << EOF
+
+$config_marker
+# Claude Code CLI
+export PATH="\$HOME/.local/bin:\$PATH"
+
+# NVM (Node Version Manager)
+export NVM_DIR="\$HOME/.nvm"
+[ -s "\$NVM_DIR/nvm.sh" ] && \\. "\$NVM_DIR/nvm.sh"
+[ -s "\$NVM_DIR/bash_completion" ] && \\. "\$NVM_DIR/bash_completion"
+
+# Pyenv (Python Version Manager)
+export PYENV_ROOT="\$HOME/.pyenv"
+export PATH="\$PYENV_ROOT/bin:\$PATH"
+eval "\$(pyenv init --path)"
+eval "\$(pyenv init -)"
+EOF
+
+    print_success "Configuration added to $shell_config"
+    print_info "Run: source $shell_config"
+}
+
+# ==============================================================================
 # FINAL VERIFICATION - Trust, but verify! ✅
 # ==============================================================================
 
@@ -449,21 +506,10 @@ verify_installation() {
         print_success "  🎉 ALL SYSTEMS GO! Your environment is ready! 🚀"
         print_success "═══════════════════════════════════════════════════════════"
         echo ""
-        print_info "IMPORTANT: Add these lines to your ~/.bashrc or ~/.zshrc:"
-        print_info ""
-        print_info "  export PATH=\"\$HOME/.local/bin:\$PATH\""
-        print_info "  export NVM_DIR=\"\$HOME/.nvm\""
-        print_info "  [ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\""
-        print_info "  export PYENV_ROOT=\"\$HOME/.pyenv\""
-        print_info "  export PATH=\"\$PYENV_ROOT/bin:\$PATH\""
-        print_info "  eval \"\$(pyenv init --path)\""
-        print_info "  eval \"\$(pyenv init -)\""
-        echo ""
-        print_info "Then run: source ~/.bashrc (or source ~/.zshrc)"
-        echo ""
         print_info "Next steps:"
-        print_info "  1. Run 'claude doctor' to verify Claude Code setup"
-        print_info "  2. Run 'claude' in your project directory to start coding!"
+        print_info "  1. Restart your terminal or run: source ~/.bashrc (or ~/.zshrc)"
+        print_info "  2. Run 'claude doctor' to verify Claude Code setup"
+        print_info "  3. Run 'claude' in your project directory to start coding!"
         echo ""
         print_warning "Remember: You need a Claude Pro/Max subscription to use Claude Code"
         print_info "Visit: https://claude.ai to manage your subscription"
@@ -524,6 +570,7 @@ EOF
     install_claude_code
     install_pyenv
     install_python
+    configure_shell
     verify_installation
 
     print_success "Installation script completed! 🎊"

@@ -426,6 +426,61 @@ install_python() {
 }
 
 # ==============================================================================
+# SHELL CONFIGURATION - Auto-configure shell profiles
+# ==============================================================================
+
+configure_shell() {
+    print_header "🔧 SHELL CONFIGURATION"
+
+    # Determine which shell config file to use (priority: zsh > bash)
+    local shell_config=""
+    if [ -f "$HOME/.zshrc" ]; then
+        shell_config="$HOME/.zshrc"
+        print_step "Configuring Zsh (~/.zshrc)..."
+    elif [ -f "$HOME/.bash_profile" ]; then
+        shell_config="$HOME/.bash_profile"
+        print_step "Configuring Bash (~/.bash_profile)..."
+    else
+        # Create .zshrc by default on macOS (default shell since Catalina)
+        shell_config="$HOME/.zshrc"
+        touch "$shell_config"
+        print_step "Created ~/.zshrc for configuration..."
+    fi
+
+    local config_marker="# Claude Code Environment - Added by ai-claude-install"
+
+    # Check if configuration already exists
+    if grep -q "$config_marker" "$shell_config"; then
+        print_success "Configuration already exists in $shell_config"
+        return 0
+    fi
+
+    print_step "Adding environment configuration..."
+
+    # Add configuration block
+    cat >> "$shell_config" << EOF
+
+$config_marker
+# Claude Code CLI
+export PATH="\$HOME/.local/bin:\$PATH"
+
+# NVM (Node Version Manager)
+export NVM_DIR="\$HOME/.nvm"
+[ -s "\$NVM_DIR/nvm.sh" ] && \\. "\$NVM_DIR/nvm.sh"
+[ -s "\$NVM_DIR/bash_completion" ] && \\. "\$NVM_DIR/bash_completion"
+
+# Pyenv (Python Version Manager)
+export PYENV_ROOT="\$HOME/.pyenv"
+export PATH="\$PYENV_ROOT/bin:\$PATH"
+eval "\$(pyenv init --path)"
+eval "\$(pyenv init -)"
+EOF
+
+    print_success "Configuration added to $shell_config"
+    print_info "Run: source $shell_config"
+}
+
+# ==============================================================================
 # FINAL VERIFICATION - Trust, but verify! ✅
 # ==============================================================================
 
@@ -567,6 +622,7 @@ EOF
     install_claude_code
     install_pyenv
     install_python
+    configure_shell
     verify_installation
 
     print_success "Installation script completed! 🎊"

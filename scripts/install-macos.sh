@@ -82,6 +82,39 @@ detect_os() {
 }
 
 # ==============================================================================
+# ADMIN RIGHTS CHECK - Homebrew requires admin access on macOS
+# ==============================================================================
+
+check_admin_rights() {
+    print_step "Checking administrator privileges..."
+
+    # Check if user is in admin group
+    if groups $USER | grep -q '\badmin\b'; then
+        print_success "User $USER has administrator privileges!"
+        return 0
+    else
+        print_error "User $USER does NOT have administrator privileges!"
+        echo ""
+        print_warning "═══════════════════════════════════════════════════════════"
+        print_warning "  ADMIN PRIVILEGES REQUIRED"
+        print_warning "═══════════════════════════════════════════════════════════"
+        echo ""
+        print_info "Homebrew (the package manager for macOS) requires administrator"
+        print_info "privileges to install system-wide packages."
+        echo ""
+        print_info "To fix this, ask a system administrator to:"
+        print_info "  1. Open System Settings > Users & Groups"
+        print_info "  2. Click on your user account ($USER)"
+        print_info "  3. Enable 'Allow user to administer this computer'"
+        echo ""
+        print_info "Alternatively, ask an administrator to run this script while"
+        print_info "logged in as their admin account."
+        echo ""
+        exit 1
+    fi
+}
+
+# ==============================================================================
 # HOMEBREW INSTALLATION - The missing package manager
 # ==============================================================================
 
@@ -452,6 +485,7 @@ configure_shell() {
     # Check if configuration already exists
     if grep -q "$config_marker" "$shell_config"; then
         print_success "Configuration already exists in $shell_config"
+        echo "$shell_config"
         return 0
     fi
 
@@ -477,7 +511,8 @@ eval "\$(pyenv init -)"
 EOF
 
     print_success "Configuration added to $shell_config"
-    print_info "Run: source $shell_config"
+    # Return the shell config file path for sourcing later
+    echo "$shell_config"
 }
 
 # ==============================================================================
@@ -559,15 +594,6 @@ verify_installation() {
         print_success "═══════════════════════════════════════════════════════════"
         print_success "  🎉 ALL SYSTEMS GO! Your environment is ready! 🚀"
         print_success "═══════════════════════════════════════════════════════════"
-        echo ""
-        print_info "Next steps:"
-        print_info "  1. Restart your terminal (or run: source ~/.zshrc)"
-        print_info "  2. Run 'claude doctor' to verify Claude Code setup"
-        print_info "  3. Run 'claude' in your project directory to start coding!"
-        echo ""
-        print_warning "Remember: You need a Claude Pro/Max subscription to use Claude Code"
-        print_info "Visit: https://claude.ai to manage your subscription"
-        echo ""
     else
         print_error "═══════════════════════════════════════════════════════════"
         print_error "  Some components failed to install properly! 😢"
@@ -616,16 +642,33 @@ EOF
 
     # Run all installation steps
     detect_os
+    check_admin_rights
     install_homebrew
     install_nvm
     install_nodejs
     install_claude_code
     install_pyenv
     install_python
-    configure_shell
+    SHELL_CONFIG=$(configure_shell)
     verify_installation
 
     print_success "Installation script completed! 🎊"
+
+    # Source the shell configuration to make everything available immediately
+    if [ -f "$SHELL_CONFIG" ]; then
+        print_header "🔄 RELOADING SHELL CONFIGURATION"
+        print_info "Loading environment variables..."
+        source "$SHELL_CONFIG"
+        print_success "Environment reloaded! All commands are now available! 🎉"
+        echo ""
+        print_info "Next steps:"
+        print_info "  1. Run 'claude doctor' to verify Claude Code setup"
+        print_info "  2. Run 'claude' in your project directory to start coding!"
+        echo ""
+        print_warning "Remember: You need a Claude Pro/Max subscription to use Claude Code"
+        print_info "Visit: https://claude.ai to manage your subscription"
+        echo ""
+    fi
 }
 
 # Run the main function

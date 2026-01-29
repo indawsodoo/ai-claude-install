@@ -31,6 +31,18 @@ These scripts will install and configure everything you need:
 
 ## 🍎 macOS Installation
 
+### Prerequisites
+
+**Important:** Your user account must have **administrator privileges** on macOS. This is required by Homebrew (the package manager).
+
+To check if you have admin rights:
+- Open System Settings > Users & Groups
+- Your account should show "Admin" under the name
+
+If you don't have admin rights, ask a system administrator to either:
+- Grant you administrator privileges, OR
+- Run this script while logged in as an administrator
+
 ### One-Command Installation
 
 ```bash
@@ -50,7 +62,7 @@ chmod +x install-macos.sh
 ./install-macos.sh
 ```
 
-**Note:** The script will ask for your password (sudo) only when installing system dependencies via Homebrew.
+**Note:** The script will ask for your password when installing Homebrew and system dependencies.
 
 ---
 

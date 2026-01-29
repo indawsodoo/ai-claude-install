@@ -88,8 +88,25 @@ detect_os() {
 check_admin_rights() {
     print_step "Checking administrator privileges..."
 
-    # Check if user is in admin group
-    if groups $USER | grep -q '\badmin\b'; then
+    # Try multiple methods to check admin rights
+    local is_admin=false
+
+    # Method 1: Check with dscl (most reliable on macOS)
+    if dscl . -read /Groups/admin GroupMembership 2>/dev/null | grep -q "\b$USER\b"; then
+        is_admin=true
+    fi
+
+    # Method 2: Check with groups command (fallback)
+    if [ "$is_admin" = false ] && groups $USER 2>/dev/null | grep -q '\badmin\b'; then
+        is_admin=true
+    fi
+
+    # Method 3: Try to run a sudo command with cached credentials
+    if [ "$is_admin" = false ] && sudo -n true 2>/dev/null; then
+        is_admin=true
+    fi
+
+    if [ "$is_admin" = true ]; then
         print_success "User $USER has administrator privileges!"
         return 0
     else
@@ -109,6 +126,10 @@ check_admin_rights() {
         echo ""
         print_info "Alternatively, ask an administrator to run this script while"
         print_info "logged in as their admin account."
+        echo ""
+        print_info "Debug info:"
+        print_info "  Current user: $USER"
+        print_info "  Groups: $(groups $USER 2>/dev/null || echo 'unable to check')"
         echo ""
         exit 1
     fi

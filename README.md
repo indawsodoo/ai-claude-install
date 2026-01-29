@@ -46,10 +46,10 @@ If you don't have admin rights, ask a system administrator to either:
 ### One-Command Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-macos.sh | bash
+bash <(curl -fsSL https://raw.githubusercontent.com/indawsodoo/ai-claude-install/main/scripts/install-macos.sh)
 ```
 
-### Manual Installation
+### Manual Installation (Recommended)
 
 ```bash
 # Download the script
